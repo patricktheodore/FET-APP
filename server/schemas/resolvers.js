@@ -7,19 +7,19 @@ const resolvers = {
         users: async () => {
             return await User.find();
         },
-        user: async (parent, args, context) => {
+        user: async (parent, args) => {
+            return await User.findById(args);   
+        },
+        me: async (parent, args, context) => {
             if (context.user) {
-                const user = await User.findById(context.user._id)
-
-                return user;
+                return User.findOne({ _id: context.user._id });
             }
-        }
+            throw new AuthenticationError('You need to be logged in!');
+        },
     },
     Mutation: {
         addUser: async (parent, args) => {
             const user = await User.create(args);
-            const token = signToken(user);
-            user.token = token;
             return user;
         },
         login: async (parent, {email, password }) => {
@@ -31,14 +31,13 @@ const resolvers = {
 
             const correctPassword = await user.isCorrectPassword(password)
 
-            if (!correctPw) {
+            if (!correctPassword) {
                 throw new AuthenticationError('Incorrect credentials!');
             }
 
             const token = signToken(user);
-            user.token = token;
 
-            return user;
+            return { token, user };
         }
     }
 };

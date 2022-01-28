@@ -30,10 +30,6 @@ const userSchema = new mongoose.Schema({
         required: true,
         minlength: 8 
     },
-    token: {
-        type: String,
-        
-    },
     created_at: { 
         type: String, 
         default: Date.now 
@@ -54,6 +50,11 @@ userSchema.pre('save', async function (next) {
 userSchema.methods.isCorrectPassword = async function (password) {
     return await bcrypt.compare(password, this.password);
 };
+
+userSchema.virtual('token').get(function () {
+    
+    return this.comments.length;
+});
 
 const User = mongoose.model('User', userSchema);
 
